@@ -31,6 +31,21 @@ O MVP estará concluído quando permitir criar um RPS, consultá-lo e transmiti-
 - O JSON da API é um contrato próprio. Sua conversão para XML fica sob responsabilidade da aplicação.
 - Regras de assinatura exigidas pelos schemas escolhidos devem ser avaliadas nessa etapa. Não remover exigências silenciosamente nem declarar conformidade sem validar o documento completo.
 
+## Como o RPS se transforma em uma NFS-e?
+
+Primeiro, nossa aplicação reúne essas informações em um RPS, por exemplo, número 123, série A. Ele representa a declaração que vamos submeter ao processamento.
+
+Ao solicitar a transmissão:
+1. A aplicação verifica os dados e calcula o ISS.
+2. Converte os dados do RPS para o XML escolhido e valida sua estrutura.
+3. Entrega o documento ao simulador da prefeitura.
+4. O simulador verifica suas regras, como permitir aquele código de serviço.
+5. Se aceitar, gera uma NFS-e fictícia, por exemplo, número 9001, e um protocolo fictício.
+6. A aplicação salva o resultado e vincula essa NFS-e ao RPS 123.
+O RPS continua existindo: ele fica associado à NFS-e gerada. São documentos com identificações e papéis diferentes.
+
+Se o simulador recusar o serviço, o RPS fica como REJEITADO, com código e motivo, e nenhuma NFS-e é gerada. Se você transmitir novamente o RPS já autorizado, nosso sistema devolve a mesma NFS-e 9001, evitando duplicidade.
+
 ## Tecnologias planejadas
 
 | Tecnologia | Responsabilidade |
