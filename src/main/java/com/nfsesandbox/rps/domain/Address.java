@@ -18,7 +18,7 @@ public class Address {
     public Address(String street, String number, String complement, String neighborhood, String city, String state, String postalCode, String municipalityCode) {
         this.street = requireNonBlank(street, "Street");
         this.number = requireNonBlank(number, "Number");
-        this.complement = complement;
+        this.complement = complement == null? null : complement.strip();
         this.neighborhood = requireNonBlank(neighborhood, "Neighborhood");
         this.city = requireNonBlank(city, "City");
         this.state = validateState(state, "State");
@@ -34,16 +34,20 @@ public class Address {
         return result;
     }
     private static String validatePostalCode(String value, String name) {
-        if(value == null || value.isBlank() || value.length() > 8) {
+        String result = requireNonBlank(value, name);
+        boolean isValid = result.matches("[0-9]{8}");
+        if(!isValid) {
             throw new IllegalArgumentException(resourceBundle.getString("address.postalCode.invalid"));
         }
-        return value.strip();
+        return result;
     }
     private static String validateMunicipality(String value, String name) {
-        if(value == null || value.isBlank() || value.length() > 7) {
+        String result = requireNonBlank(value, name);
+        boolean isValid = result.matches("[0-9]{7}");
+        if(!isValid) {
             throw new IllegalArgumentException(resourceBundle.getString("address.municipalityCode.invalid"));
         }
-        return value.strip();
+        return result;
     }
     private static String requireNonBlank(String value, String name) {
         if(value == null || value.isBlank()) {
