@@ -3,49 +3,34 @@ package com.nfsesandbox.rps.domain;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
-public class ServiceProvider {
-    private String document;
-    private PersonType personType;
-    private String name;
+public class ServiceProvider extends ServiceParty{
     private String municipalRegistration;
-    private Address address;
 
-    private static ResourceBundle resourceBundle = ResourceBundle.getBundle("messages");
+    private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("messages");
 
     public ServiceProvider(String document, PersonType personType, String name, String municipalRegistration, Address address) {
-        this.document = requireNonBlank(document,"Document");
-        if(personType != PersonType.INDIVIDUAL && personType != PersonType.LEGAL_ENTITY) {
-            throw new IllegalArgumentException(resourceBundle.getString("validation.required.personType"));
+        super(document, personType, name, address);
+        this.municipalRegistration = requireNonBlank(municipalRegistration, "Municipal Registration");
+    }
+
+    private static String validateDocument(String value, PersonType personType) {
+        String result = requireNonBlank(value, "Document");
+        boolean isValid = false;
+        if(personType == PersonType.INDIVIDUAL) {
+            isValid = result.matches("[0-9]{11}");
+        } else if(personType == PersonType.LEGAL_ENTITY) {
+            isValid = result.matches("[A-Z0-9]{14}");
         }
-        this.personType = personType;
-        this.name = requireNonBlank(name, "Name of the Service Provider");
-        this.municipalRegistration = municipalRegistration;
-        this.address = address;
-    }
-
-    private static String requireNonBlank(String value, String name) {
-        if(value == null || value.isBlank()) {
-            throw new IllegalArgumentException(MessageFormat.format(resourceBundle.getString("validation.required"), name));
+        if(!isValid) {
+            throw new IllegalArgumentException(resourceBundle.getString("validation.invalid.document"));
         }
-        return value.strip();
-    }
-    public String getDocument() {
-        return document;
+        return result;
     }
 
-    public PersonType getPersonType() {
-        return personType;
-    }
 
-    public String getName() {
-        return name;
-    }
 
     public String getMunicipalRegistration() {
         return municipalRegistration;
     }
 
-    public Address getAddress() {
-        return address;
-    }
 }

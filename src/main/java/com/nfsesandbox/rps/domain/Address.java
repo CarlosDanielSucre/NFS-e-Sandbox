@@ -13,7 +13,7 @@ public class Address {
     private String postalCode;
     private String municipalityCode;
 
-    private static ResourceBundle resourceBundle = ResourceBundle.getBundle("messages");
+    private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("messages");
 
     public Address(String street, String number, String complement, String neighborhood, String city, String state, String postalCode, String municipalityCode) {
         this.street = requireNonBlank(street, "Street");
