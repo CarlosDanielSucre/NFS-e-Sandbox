@@ -1,6 +1,7 @@
 package com.nfsesandbox.rps.domain;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
@@ -29,6 +30,10 @@ public class ServiceDetails {
             throw new IllegalArgumentException(MessageFormat.format(resourceBundle.getString("validation.required"), name));
         }
         return value.strip();
+    }
+    public BigDecimal calculateIss() {
+        BigDecimal result = amount.multiply(issRate);
+        return result.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
     public String getCode() {
