@@ -13,22 +13,6 @@ public class ServiceProvider extends ServiceParty{
         this.municipalRegistration = requireNonBlank(municipalRegistration, "Municipal Registration");
     }
 
-    private static String validateDocument(String value, PersonType personType) {
-        String result = requireNonBlank(value, "Document");
-        boolean isValid = false;
-        if(personType == PersonType.INDIVIDUAL) {
-            isValid = result.matches("[0-9]{11}");
-        } else if(personType == PersonType.LEGAL_ENTITY) {
-            isValid = result.matches("[A-Z0-9]{14}");
-        }
-        if(!isValid) {
-            throw new IllegalArgumentException(resourceBundle.getString("validation.invalid.document"));
-        }
-        return result;
-    }
-
-
-
     public String getMunicipalRegistration() {
         return municipalRegistration;
     }
