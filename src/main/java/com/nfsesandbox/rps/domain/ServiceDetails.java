@@ -14,8 +14,8 @@ public class ServiceDetails {
     private static final ResourceBundle resourceBundle = ResourceBundle.getBundle("messages");
 
     public ServiceDetails(String code, String description, BigDecimal amount, BigDecimal issRate) {
-        this.code = requireNonBlank(code,"Code");
-        this.description = requireNonBlank(description, "Description");
+        this.code = ValidationSupport.requireNonBlank(code,"Code");
+        this.description = ValidationSupport.requireNonBlank(description, "Description");
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException(resourceBundle.getString("amount.validation"));
         }
@@ -24,12 +24,6 @@ public class ServiceDetails {
             throw new IllegalArgumentException(resourceBundle.getString("issRate.validation"));
         }
         this.issRate = issRate;
-    }
-    private static String requireNonBlank(String value, String name) {
-        if(value == null || value.isBlank()) {
-            throw new IllegalArgumentException(MessageFormat.format(resourceBundle.getString("validation.required"), name));
-        }
-        return value.strip();
     }
     public BigDecimal calculateIss() {
         BigDecimal result = amount.multiply(issRate);

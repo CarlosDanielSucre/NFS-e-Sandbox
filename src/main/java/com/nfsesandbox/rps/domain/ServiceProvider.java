@@ -10,7 +10,7 @@ public class ServiceProvider extends ServiceParty{
 
     public ServiceProvider(String document, PersonType personType, String name, String municipalRegistration, Address address) {
         super(document, personType, name, address);
-        this.municipalRegistration = requireNonBlank(municipalRegistration, "Municipal Registration");
+        this.municipalRegistration = ValidationSupport.requireNonBlank(municipalRegistration, "Municipal Registration");
     }
 
     public String getMunicipalRegistration() {

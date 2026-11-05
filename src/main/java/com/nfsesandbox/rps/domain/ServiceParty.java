@@ -17,14 +17,14 @@ public abstract class ServiceParty {
         }
         this.document = validateDocument(document,personType);
         this.personType = personType;
-        this.name = requireNonBlank(name, "Name");
+        this.name = ValidationSupport.requireNonBlank(name, "Name");
         if(address == null) {
             throw new IllegalArgumentException(MessageFormat.format(resourceBundle.getString("validation.required"), "Address"));
         }
         this.address = address;
     }
     private static String validateDocument(String value, PersonType personType) {
-        String result = requireNonBlank(value, "Document");
+        String result = ValidationSupport.requireNonBlank(value, "Document");
         boolean isValid = false;
         if(personType == PersonType.INDIVIDUAL) {
             isValid = result.matches("[0-9]{11}");
@@ -37,12 +37,6 @@ public abstract class ServiceParty {
         return result;
     }
 
-    protected static String requireNonBlank(String value, String name) {
-        if(value == null || value.isBlank()) {
-            throw new IllegalArgumentException(MessageFormat.format(resourceBundle.getString("validation.required"), name));
-        }
-        return value.strip();
-    }
     public String getDocument() {
         return document;
     }
