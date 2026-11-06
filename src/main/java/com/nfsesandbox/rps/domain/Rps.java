@@ -2,6 +2,7 @@ package com.nfsesandbox.rps.domain;
 
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
+import java.util.ResourceBundle;
 
 public class Rps {
     private String number;
@@ -12,7 +13,8 @@ public class Rps {
     private ServiceDetails serviceDetails;
     private RpsStatus status;
 
-
+    private static final ResourceBundle resourceBundle =
+            ResourceBundle.getBundle("messages");
     public Rps(String number, String series, LocalDateTime issuedAt, ServiceProvider provider, ServiceCustomer customer, ServiceDetails serviceDetails) {
         this.number = ValidationSupport.requireNonBlank(number, "Number");
         this.series = ValidationSupport.requireNonBlank(series, "Series");
@@ -22,7 +24,15 @@ public class Rps {
         this.serviceDetails = ValidationSupport.requireNonNull(serviceDetails, "Service Details");
         this.status = RpsStatus.CREATED;
     }
+    public void authorize() {
+        if (status != RpsStatus.CREATED) {
+            throw new IllegalStateException(
+                    resourceBundle.getString("rps.authorization.invalidState")
+            );
+        }
 
+        this.status = RpsStatus.AUTHORIZED;
+    }
     public String getNumber() {
         return number;
     }
