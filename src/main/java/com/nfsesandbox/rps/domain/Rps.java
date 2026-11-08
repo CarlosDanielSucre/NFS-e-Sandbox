@@ -13,10 +13,7 @@ public class Rps {
     private ServiceDetails serviceDetails;
     private RpsStatus status;
     private Authorization authorization;
-
-    public Authorization getAuthorization() {
-        return authorization;
-    }
+    private Rejection rejection;
 
     private static final ResourceBundle resourceBundle =
             ResourceBundle.getBundle("messages");
@@ -28,6 +25,15 @@ public class Rps {
         this.customer = ValidationSupport.requireNonNull(customer, "Customer");
         this.serviceDetails = ValidationSupport.requireNonNull(serviceDetails, "Service Details");
         this.status = RpsStatus.CREATED;
+    }
+    public void reject(Rejection rejection) {
+        if (status != RpsStatus.CREATED) {
+            throw new IllegalStateException(
+                    resourceBundle.getString("rps.rejection.invalidState")
+            );
+        }
+        this.rejection = ValidationSupport.requireNonNull(rejection, "Rejection");
+        this.status = RpsStatus.REJECTED;
     }
     public void authorize(Authorization authorization) {
         if (status != RpsStatus.CREATED) {
@@ -64,5 +70,12 @@ public class Rps {
 
     public RpsStatus getStatus() {
         return status;
+    }
+    public Authorization getAuthorization() {
+        return authorization;
+    }
+
+    public Rejection getRejection() {
+        return rejection;
     }
 }
