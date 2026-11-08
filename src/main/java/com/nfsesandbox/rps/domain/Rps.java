@@ -12,6 +12,11 @@ public class Rps {
     private ServiceCustomer customer;
     private ServiceDetails serviceDetails;
     private RpsStatus status;
+    private Authorization authorization;
+
+    public Authorization getAuthorization() {
+        return authorization;
+    }
 
     private static final ResourceBundle resourceBundle =
             ResourceBundle.getBundle("messages");
@@ -24,13 +29,13 @@ public class Rps {
         this.serviceDetails = ValidationSupport.requireNonNull(serviceDetails, "Service Details");
         this.status = RpsStatus.CREATED;
     }
-    public void authorize() {
+    public void authorize(Authorization authorization) {
         if (status != RpsStatus.CREATED) {
             throw new IllegalStateException(
                     resourceBundle.getString("rps.authorization.invalidState")
             );
         }
-
+        this.authorization = ValidationSupport.requireNonNull(authorization, "Authorization");
         this.status = RpsStatus.AUTHORIZED;
     }
     public String getNumber() {
