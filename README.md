@@ -2,7 +2,7 @@
 
 API educacional para simular a emissão de uma Nota Fiscal de Serviço Eletrônica, do cadastro de um RPS até sua autorização ou rejeição por uma prefeitura fictícia.
 
-> Projeto em planejamento. Este README define o comportamento esperado do MVP; não representa funcionalidades já implementadas. Os documentos emitidos são fictícios e não possuem validade fiscal.
+> Projeto em desenvolvimento, na etapa de domínio em Java. O progresso abaixo se baseia nos trechos implementados e revisados durante o desenvolvimento; não representa verificação do repositório completo. API, banco, XML e transmissão continuam planejados. Os documentos emitidos serão fictícios e sem validade fiscal.
 
 ## Objetivo
 
@@ -31,22 +31,7 @@ O MVP estará concluído quando permitir criar um RPS, consultá-lo e transmiti-
 - O JSON da API é um contrato próprio. Sua conversão para XML fica sob responsabilidade da aplicação.
 - Regras de assinatura exigidas pelos schemas escolhidos devem ser avaliadas nessa etapa. Não remover exigências silenciosamente nem declarar conformidade sem validar o documento completo.
 
-## Como o RPS se transforma em uma NFS-e?
-
-Primeiro, nossa aplicação reúne essas informações em um RPS, por exemplo, número 123, série A. Ele representa a declaração que vamos submeter ao processamento.
-
-Ao solicitar a transmissão:
-1. A aplicação verifica os dados e calcula o ISS.
-2. Converte os dados do RPS para o XML escolhido e valida sua estrutura.
-3. Entrega o documento ao simulador da prefeitura.
-4. O simulador verifica suas regras, como permitir aquele código de serviço.
-5. Se aceitar, gera uma NFS-e fictícia, por exemplo, número 9001, e um protocolo fictício.
-6. A aplicação salva o resultado e vincula essa NFS-e ao RPS 123.
-O RPS continua existindo: ele fica associado à NFS-e gerada. São documentos com identificações e papéis diferentes.
-
-Se o simulador recusar o serviço, o RPS fica como REJEITADO, com código e motivo, e nenhuma NFS-e é gerada. Se você transmitir novamente o RPS já autorizado, nosso sistema devolve a mesma NFS-e 9001, evitando duplicidade.
-
-## Tecnologias planejadas
+## Tecnologias e estágio atual
 
 | Tecnologia | Responsabilidade |
 | --- | --- |
@@ -56,16 +41,63 @@ Se o simulador recusar o serviço, o RPS fica como REJEITADO, com código e moti
 | Spring Data JPA | Persistência |
 | PostgreSQL | Banco de dados |
 | Flyway | Evolução do schema do banco |
-| Maven | Dependências e build |
+| Gradle | Build escolhido para o projeto; configuração e versão a documentar |
 | Biblioteca de XML e validador XSD do Java | Serialização e validação estrutural |
 | JUnit e testes de integração | Verificação das regras e do fluxo |
 
-As versões serão fixadas no início do desenvolvimento e registradas no repositório.
+O domínio atual utiliza Java, `BigDecimal`, `LocalDateTime`, `ResourceBundle` e `MessageFormat`. As versões exatas do JDK, Gradle e Spring Boot devem ser confirmadas no repositório antes de documentar comandos de execução.
 
-## Fluxo de emissão
+## Progresso atual
+
+### Domínio desenvolvido
+
+| Classe | Responsabilidade e comportamento atual |
+| --- | --- |
+| `Address` | Agrupa logradouro, número, complemento, bairro, cidade, UF, CEP e código do município. Trata espaços externos e permite complemento nulo. |
+| `PersonType` | Enum com `INDIVIDUAL` e `LEGAL_ENTITY`. |
+| `ServiceParty` | Classe abstrata com documento, tipo de pessoa, nome e endereço; concentra as validações comuns. |
+| `ServiceProvider` | Estende `ServiceParty` e acrescenta inscrição municipal obrigatória no sandbox. |
+| `ServiceCustomer` | Estende `ServiceParty` para representar o tomador. |
+| `ServiceDetails` | Mantém código, descrição, valor e alíquota; calcula ISS com `calculateIss()`. |
+| `ValidationSupport` | Compartilha `requireNonBlank` e o método genérico `requireNonNull`, retornando os valores validados. |
+| `Rps` | Reúne número, série, data, prestador, tomador e serviço; valida obrigatoriedade e inicia em `CREATED`. |
+| `RpsStatus` | Estados previstos no modelo: `CREATED`, `AUTHORIZED` e `REJECTED`. |
+
+### Validações e mensagens
+
+- Textos obrigatórios são rejeitados quando nulos ou em branco e armazenados sem espaços nas extremidades.
+- UF: duas letras maiúsculas, por meio de `[A-Z]{2}`; ainda sem conferência da lista de UFs.
+- CEP: oito dígitos, por meio de `[0-9]{8}`.
+- Código do município: sete dígitos, por meio de `[0-9]{7}`; ainda sem consulta à existência ou correspondência com a cidade.
+- Documento: checagem inicial de formato conforme `PersonType`. Dígitos verificadores e regras completas ainda estão pendentes.
+- As regras alvo para valores são `amount > 0` e `0 < issRate <= 5`. Os cenários de nulo, zero e limites devem ser consolidados em testes automatizados.
+- As mensagens ficam em `src/main/resources/messages.properties`, carregadas com `ResourceBundle`.
+- Mensagens parametrizadas, como `validation.required={0} is required`, são formatadas com `MessageFormat`.
+
+O cálculo implementado multiplica `amount` por `issRate` e divide por 100, com escala 2 e `RoundingMode.HALF_UP`. Exemplos de referência: 1000,00 a 5% resulta em 50,00; 10,10 a 5% resulta em 0,51.
+
+### Próxima entrega
+
+Foi definido e fornecido um primeiro método `authorize()`, que só permite a transição de `CREATED` para `AUTHORIZED` e lança `IllegalStateException` em outros estados. A incorporação e os testes desse método ainda precisam ser confirmados.
+
+Os próximos passos são concluir as transições de autorização e rejeição, associar os dados do resultado e automatizar os testes do domínio. Alterar o status em memória ainda não representa emissão completa, persistência ou transmissão.
+
+## Organização atual do código
+
+Pacote de domínio: `com.nfsesandbox.rps.domain`.
+
+| Caminho | Conteúdo |
+| --- | --- |
+| `src/main/java/com/nfsesandbox/rps/domain/` | Classes de domínio, enumerações e validações compartilhadas |
+| `src/main/resources/messages.properties` | Catálogo de mensagens |
+| `src/test/java/com/nfsesandbox/rps/domain/` | Local previsto para testes automatizados do domínio |
+
+A evolução prevê os pacotes `rps.api`, `rps.application`, `rps.persistence`, `rps.xml` e `prefeitura`. Eles serão introduzidos conforme suas responsabilidades forem implementadas.
+
+## Fluxo de emissão planejado
 
 1. O cliente informa identificação do RPS, prestador, tomador, serviço e valores.
-2. A aplicação valida a entrada, calcula o ISS e salva o RPS como `CRIADO`.
+2. A aplicação valida a entrada, calcula o ISS e salva o RPS como `CREATED`.
 3. O cliente solicita a transmissão.
 4. A aplicação gera o XML e valida sua estrutura contra os XSD escolhidos.
 5. O simulador aplica suas regras de aceitação.
@@ -77,8 +109,8 @@ Entrada inválida na criação retorna erro e não cria um RPS. Uma rejeição m
 
 | Conceito | Dados principais |
 | --- | --- |
-| RPS | Identificador interno, número, série, tipo, data de emissão, prestador, tomador, serviço e status |
-| Prestador | CNPJ, inscrição municipal e município |
+| RPS | Atualmente: número, série, data de emissão, prestador, tomador, serviço e status. Identificador interno e tipo ainda serão definidos para persistência/layout. |
+| Prestador | Documento, tipo de pessoa, nome, inscrição municipal e endereço |
 | Tomador | CPF ou CNPJ, nome e dados de endereço exigidos pelo layout |
 | Serviço | Descrição, código do serviço, município, valor e alíquota |
 | Valores calculados | Base de cálculo e valor do ISS |
@@ -86,17 +118,17 @@ Entrada inválida na criação retorna erro e não cria um RPS. Uma rejeição m
 | NFS-e simulada | Número fictício e protocolo fictício associados ao RPS autorizado |
 | Rejeição | Código e mensagem da regra violada |
 
-Os campos acima descrevem o domínio mínimo. Os campos obrigatórios adicionais do XML serão derivados dos schemas selecionados.
+A tabela distingue o modelo atual dos resultados ainda planejados. Os campos obrigatórios adicionais do XML serão derivados dos schemas selecionados.
 
 ### Estados
 
 | Estado | Significado | Próxima ação |
 | --- | --- | --- |
-| `CRIADO` | RPS persistido, sem resultado municipal | Transmitir |
-| `AUTORIZADO` | NFS-e fictícia emitida | Consultar ou recuperar o mesmo resultado |
-| `REJEITADO` | Simulador recusou o RPS | Consultar ou recuperar a mesma rejeição |
+| `CREATED` | RPS criado; persistência e transmissão ainda serão implementadas | Transmitir quando o fluxo estiver disponível |
+| `AUTHORIZED` | NFS-e fictícia emitida | Consultar ou recuperar o mesmo resultado |
+| `REJECTED` | Simulador recusou o RPS | Consultar ou recuperar a mesma rejeição |
 
-O MVP não permite editar ou retransmitir com dados alterados um RPS já processado. Falhas técnicas sem resultado definitivo preservam o estado `CRIADO`, permitindo nova tentativa com os mesmos dados.
+O MVP não permite editar ou retransmitir com dados alterados um RPS já processado. Falhas técnicas sem resultado definitivo preservam o estado `CREATED`, permitindo nova tentativa com os mesmos dados.
 
 ## Regras de negócio
 
@@ -134,7 +166,7 @@ Esses códigos pertencem ao projeto e não são códigos oficiais da ABRASF. Um 
 
 ### Duplicidade e idempotência
 
-- Identificar o RPS pela combinação de CNPJ do prestador, inscrição municipal, município, número, série e tipo.
+- Planejar a identificação única pela combinação de documento e tipo de pessoa do prestador, inscrição municipal, município, número, série e tipo do RPS. Confirmar essa chave ao implementar persistência e selecionar o layout.
 - Impedir duas criações com a mesma chave por meio de uma restrição única no banco.
 - Uma criação duplicada retorna conflito e informa o identificador existente.
 - Transmitir novamente um RPS processado retorna o mesmo resultado persistido, sem gerar outro número ou protocolo.
@@ -159,7 +191,7 @@ Esses códigos pertencem ao projeto e não são códigos oficiais da ABRASF. Um 
 | `409 Conflict` | Tentativa de criar a mesma identificação de RPS |
 | `500 Internal Server Error` | Falha interna, inclusive XML gerado incompatível com o XSD |
 
-Uma resposta HTTP `200` na transmissão indica que a operação foi processada. O campo de status do documento distingue `AUTORIZADO` de `REJEITADO`.
+Uma resposta HTTP `200` na transmissão indica que a operação foi processada. O campo de status do documento distingue `AUTHORIZED` de `REJECTED`.
 
 Erros devem ter código, mensagem compreensível e, quando aplicável, campo inválido. Não retornar stack traces ao cliente.
 
@@ -180,10 +212,18 @@ O controlador não calcula imposto nem monta XML. O simulador não decide a resp
 
 ## Plano de implementação
 
-Todas as etapas abaixo estão pendentes neste documento.
+O domínio está em desenvolvimento; as demais camadas ainda não foram demonstradas.
+
+- [x] Modelar endereço, participantes e serviço.
+- [x] Centralizar validações compartilhadas e mensagens.
+- [x] Implementar cálculo simplificado do ISS.
+- [x] Modelar criação do RPS com campos obrigatórios e estado inicial.
+- [ ] Concluir e testar transições de estado e dados de autorização/rejeição.
+- [ ] Implementar validação completa dos documentos.
+- [ ] Consolidar testes automatizados das regras do domínio.
 
 - [ ] **1. Fundação:** iniciar o projeto, fixar versões, configurar PostgreSQL e primeira migration.
-- [ ] **2. Domínio:** definir identificação do RPS, dados obrigatórios, cálculo do ISS e estados.
+- [ ] **2. Domínio (em andamento):** concluir identificação, validação de documentos, resultados e testes das transições. Cálculo do ISS e estrutura inicial já desenvolvidos.
 - [ ] **3. Criação e consulta:** implementar os endpoints, persistência e erros de validação.
 - [ ] **4. XML:** selecionar a operação ABRASF, registrar origem e versão dos XSD e validar um documento de referência.
 - [ ] **5. Simulador:** definir município e serviços permitidos, autorização e rejeições determinísticas.
@@ -212,7 +252,7 @@ As instruções serão preenchidas quando existir uma implementação executáve
 
 Antes de concluir o MVP, registrar nesta seção:
 
-- Versões de Java e Maven e uso do Maven Wrapper.
+- Versões de Java e Gradle e configuração do Gradle Wrapper.
 - Como iniciar o PostgreSQL e configurar as credenciais por variáveis de ambiente.
 - Como aplicar migrations, iniciar a aplicação e executar testes.
 - Porta e URL local da API.
