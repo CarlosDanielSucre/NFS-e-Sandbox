@@ -261,3 +261,32 @@ Antes de concluir o MVP, registrar nesta seção:
 ## Limite de conclusão
 
 O MVP termina quando todos os critérios de aceite forem demonstrados. Interface web, integração real, padrão nacional, cancelamento e processamento assíncrono ficam para uma próxima versão, após o fechamento desta entrega.
+
+## Próximas etapas para concluir o MVP
+
+- [ ] Automatizar os testes do domínio: validações, cálculo e arredondamento do ISS, autorização, rejeição e transições inválidas.
+- [ ] Completar a validação de CPF/CNPJ, incluindo dígitos verificadores.
+- [ ] Configurar Spring Boot, PostgreSQL, JPA/Hibernate e migrations com Flyway.
+- [ ] Implementar persistência e consulta do RPS, incluindo autorização ou rejeição.
+- [ ] Implementar os endpoints:
+    - `POST /api/rps`
+    - `GET /api/rps/{id}`
+    - `POST /api/rps/{id}/transmit`
+- [ ] Gerar XML na versão ABRASF escolhida e validar contra os respectivos XSD.
+- [ ] Implementar o simulador municipal com regras determinísticas de autorização e rejeição.
+- [ ] Integrar geração do XML, transmissão simulada e armazenamento do resultado.
+- [ ] Impedir cadastro duplicado e emissão duplicada, inclusive em requisições concorrentes.
+- [ ] Padronizar respostas de erro da API.
+- [ ] Documentar configuração, execução, testes e exemplos de requisições.
+
+## Critério de conclusão
+
+O MVP estará concluído quando demonstrar:
+
+1. Um RPS válido gera XML e recebe uma NFS-e fictícia com número e protocolo.
+2. Um RPS recusado pelo simulador mantém código e motivo da rejeição.
+3. Repetir a transmissão retorna o resultado existente, sem gerar outra NFS-e.
+4. Os dados e resultados continuam disponíveis após reiniciar a aplicação.
+
+Interface web, integração com prefeitura real, certificado digital,
+cancelamento e substituição ficam fora desta primeira versão.
